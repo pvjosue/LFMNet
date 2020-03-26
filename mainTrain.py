@@ -18,6 +18,7 @@ from util.LFUtil import *
 import numpy as np
 
 from networks.LFMNet import LFMNet
+from util.TorchNDFunctions.FunctionsNd import ConvNd
 
 # Arguments
 parser = argparse.ArgumentParser()
@@ -26,7 +27,7 @@ parser.add_argument('--epochs', type=int, default=1000)
 # Validate every n percentage of the data
 parser.add_argument('--valEvery', type=float, default=0.25)
 # Image indices to use for training and validation
-parser.add_argument('--imagesToUse', nargs='+', type=int, default=list(range(0,350,1)))
+parser.add_argument('--imagesToUse', nargs='+', type=int, default=list(range(0,5,1)))
 # List of GPUs to use: 0 1 2 for example
 parser.add_argument('--GPUs', nargs='+', type=int, default=None)
 # Batch size
@@ -52,7 +53,7 @@ parser.add_argument('--useShallowUnet', type=str2bool, default=True)
 # Lower threshold of GT stacks, to get rid of autofluorescence
 parser.add_argument('--ths', type=float, default=0.03)
 # Path to dataset
-parser.add_argument('--datasetPath', nargs='?', default=None)
+parser.add_argument('--datasetPath', nargs='?', default="BrainLFMConfocalDataset/Brain_40x_64Depths_362imgs.h5")
 # Path to directory where models and tensorboard logs are stored
 parser.add_argument('--outputPath', nargs='?', default=".")
 # Prefix for current output folder
@@ -64,7 +65,7 @@ args = parser.parse_args()
 nImgs = len(args.imagesToUse)
 
 # Setup multithreading
-numWorkers = _getThreads()
+num_workers = getThreads()
 if num_workers!=0:
     torch.set_num_threads(num_workers)
 
@@ -97,8 +98,8 @@ device = torch.device("cuda:"+str(device_ids[0]) if torch.cuda.is_available() el
 today = datetime.now()
 # Get commit number 
 label = subprocess.check_output(["git", "describe", "--always"]).strip()
-comment = today.strftime('%Y_%m_%d__%H:%M:%S') + "_"+ str(useBias) +"B_"+str(biasVal)+"bias_" + str(nImgs) + \
-     "I_"+ str(batchSize)+"BS_"+str(useSkipCon)+"Sk_" +  str(args.fovInput) + "FOV_" + str(args.neighShape) + "nT_" \
+comment = today.strftime('%Y_%m_%d__%H:%M:%S') + "_"+ str(args.useBias) +"B_"+str(args.biasVal)+"bias_" + str(nImgs) + \
+     "I_"+ str(args.batchSize)+"BS_"+str(args.useSkipCon)+"Sk_" +  str(args.fovInput) + "FOV_" + str(args.neighShape) + "nT_" \
             + str(args.ths) + "ths_" + str(label.decode("utf-8") ) + "_commit__" + args.outputPrefix
 
 # Create output folder
@@ -117,52 +118,51 @@ writer.flush()
 
 
 # Load dataset
-allData = Dataset(args.datasetPath, args.randomSeed, \
+all_data = Dataset(args.datasetPath, args.randomSeed, \
     fov=args.fovInput, neighShape=args.neighShape, img_indices=args.imagesToUse, get_full_imgs=False, center_region=None)
 # Split validation and testing
-train_size = int((1 - args.validationSplit) * len(allData))
-test_size = len(allData) - train_size
-train_dataset, test_dataset = torch.utils.data.random_split(data_train, [train_size, test_size])
+train_size = int((1 - args.validationSplit) * len(all_data))
+test_size = len(all_data) - train_size
+train_dataset, test_dataset = torch.utils.data.random_split(all_data, [train_size, test_size])
 # Create data loaders
-train_dataset = data.DataLoader(train_dataset, batchSize=batchSize,
+train_dataset = data.DataLoader(train_dataset, batch_size=args.batchSize,
                                 shuffle=True, num_workers=num_workers, pin_memory=True)
-test_dataset = data.DataLoader(test_dataset, batchSize=batchSize,
+test_dataset = data.DataLoader(test_dataset, batch_size=args.batchSize,
                                shuffle=True, num_workers=num_workers, pin_memory=True)
 
-validate_every = np.round(len(train_dataset)*validate_every)
+validate_every = np.round(len(train_dataset)*args.valEvery)
 
 # Get Dataset information
-nDepths = data_train.get_n_depths()
-volShape, LFshape = data_train.__shape__()
+nDepths = all_data.get_n_depths()
+volShape, LFshape = all_data.__shape__()
 LFshape = LFshape[0:4]
 lateralTile = int(math.sqrt(nDepths))
 # Find normalization values
-maxInputTrain, maxVolumeTrain = data_train.get_max()
-maxInputTest, maxVolumeTest = data_train.get_max()
+maxInputTrain, maxVolumeTrain = all_data.get_max()
+maxInputTest, maxVolumeTest = all_data.get_max()
 
 # Create network
-net = LFMNet(nDepths, useBias, useSkipCon, LFshape, LFfov=args.fovInput, use_small_unet=args.smallUnet).to(device)
-optimizer = optim.Adam(net.parameters(), lr=learning_rate)
-schedul = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[150,300], gamma=0.5)
-criterion = nn.L1Loss()
+net = LFMNet(nDepths, args.useBias, args.useSkipCon, LFshape, LFfov=args.fovInput, use_small_unet=args.useShallowUnet).to(device)
+optimizer = optim.Adam(net.parameters(), lr=args.learningRate)
+lossFunction = nn.L1Loss()
 # Create SSIM criteria
 ssim = SSIM()
 ssim.eval()
 
 # Init bias and weights if needed
-if useBias:
+if args.useBias:
     def bias_init(m):
         if isinstance(m, nn.Conv2d) or isinstance(m, ConvNd) or isinstance(m, nn.Conv3d):
             if m.bias is not None:
-                nn.init.constant_(m.bias.data, bias_val)
+                nn.init.constant_(m.bias.data, args.biasVal)
             nn.init.kaiming_normal_(m.weight)
         if isinstance(m, nn.ConvTranspose2d):
-            nn.init.constant_(m.bias.data, bias_val)
+            nn.init.constant_(m.bias.data, args.biasVal)
             nn.init.kaiming_normal_(m.weight)
     net.apply(bias_init)
 
 # Load network from checkpoint
-if args.checkpoint_path is not None:
+if args.checkpointPath is not None:
     net.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epochStart = checkpoint['epoch']
@@ -178,7 +178,7 @@ if torch.cuda.device_count() > 1:
     torch.distributed.init_process_group(backend="nccl", rank=0, world_size=1) #initialize torch.distributed 
 
 # Move network to distributed data parallel
-net = nn.parallel.DistributedDataParallel(net, device_ids=args.GPUs, output_device=args.GPUs[0]).to(device)
+net = nn.parallel.DistributedDataParallel(net, device_ids=args.GPUs, output_device=args.GPUs[0],find_unused_parameters=True).to(device)
 
 
 # timers
@@ -193,8 +193,7 @@ test_loss = 0
 epochStart = 0
 
 # Start training
-for epoch in range(epochStart, epochs):
-    schedul.step()
+for epoch in range(epochStart, args.epochs):
     net.train()
     torch.set_grad_enabled(True)
     train_loss = 0
@@ -213,10 +212,11 @@ for epoch in range(epochStart, epochs):
         inputGPU = inputs.float().to(device) / maxInputTest
         outputsGT = labels.float().to(device) / maxVolumeTrain
         # Threshold GT to get rid of autofluorescence
-        outputsGT = imadjust(outputsGT,ths,outputsGT.max(), outputsGT.min(), outputsGT.max())
+        if args.ths!=0:
+            outputsGT = imadjust(outputsGT, args.ths,outputsGT.max(), outputsGT.min(), outputsGT.max())
         # Predict
         outputsVol = net(inputGPU)
-        loss = criteria(outputsGT,outputsVol)
+        loss = lossFunction(outputsGT,outputsVol)
         loss.backward()
         train_loss += loss.item() / nDepths
         optimizer.step()
@@ -250,7 +250,6 @@ for epoch in range(epochStart, epochs):
             gt = outputsGT[0,:,:,:,:].sum(3).repeat(3,1,1)
             gt /= gt.max()
             # Write to tensorboard
-            writer.add_figure('grads',fig, curr_it)
             writer.add_image('z_proj_train',gt,curr_it)
             writer.add_image('images_train_YZ_projection', gridOut2, curr_it)        
             writer.add_image('outputRGB_train', gridPred, curr_it)
@@ -275,9 +274,9 @@ for epoch in range(epochStart, epochs):
                     inputGPU = inputs.float().to(device) / maxInputTest
                     outputsGT = labels.float().to(device) / maxVolumeTrain
                     # Threshold GT to get rid of autofluorescence
-                    outputsGT = imadjust(outputsGT,ths,outputsGT.max(), outputsGT.min(), outputsGT.max())
+                    outputsGT = imadjust(outputsGT,args.ths,outputsGT.max(), outputsGT.min(), outputsGT.max())
                     outputsVol = net(inputGPU)
-                    loss = criteria(outputsGt,outputsVol)
+                    loss = lossFunction(outputsGT,outputsVol)
                     test_loss += loss.item() / nDepths
                     # Compute PSNR
                     lossMSE = nn.functional.mse_loss(outputsVol.to(device).detach(), outputsGT.to(device).detach())
@@ -311,7 +310,7 @@ for epoch in range(epochStart, epochs):
                 writer.add_scalar('Loss/test', test_loss/len(test_dataset), curr_it)
                 writer.add_scalar('Loss/psnr_val', avg_psnr/len(test_dataset), curr_it)
                 writer.add_scalar('Loss/ssim_val', avg_ssim/len(test_dataset), curr_it)    
-                writer.add_scalar('LearningRate', learning_rate, curr_it)
+                writer.add_scalar('LearningRate', args.learningRate, curr_it)
                 writer.add_scalar('times/val', start.elapsed_time(end)/test_size, curr_it)  
             net.train()
     
@@ -322,10 +321,10 @@ for epoch in range(epochStart, epochs):
         'model_state_dict': net.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': train_loss, 
-        'dataset_path': dataset_path},
+        'dataset_path': args.datasetPath},
         save_folder + '/model_'+str(epoch))
 
-    print(f"Epoch {epoch + 1}/{epochs}.. "
+    print(f"Epoch {epoch + 1}/{args.epochs}.. "
             f"Train loss: {train_loss / len(train_dataset):.7f}.. "
             f"Test loss: {test_loss / len(test_dataset):.7f}.. ")
 

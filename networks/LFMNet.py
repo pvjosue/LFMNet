@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from util.LFClases import *
+from util.LFUtil import *
 from util.TorchNDFunctions.FunctionsNd import ConvNd
 
 class LFMNet(nn.Module):
