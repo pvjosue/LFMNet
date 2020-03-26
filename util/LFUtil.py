@@ -178,8 +178,7 @@ def weights_init(m):
     if isinstance(m, nn.ConvTranspose2d):
         nn.init.constant_(m.weight.data, 1/len(m.weight.data))
 
-def _getThreads():
-    """ Returns the number of available threads on a posix/win based system """
+def getThreads():
     if sys.platform == 'win32':
         return (int)(os.environ['NUMBER_OF_PROCESSORS'])
     else:
