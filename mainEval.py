@@ -20,10 +20,13 @@ import numpy as np
 from networks.LFMNet import LFMNet
 from util.TorchNDFunctions.FunctionsNd import ConvNd
 
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.benchmark = True
+
 # Arguments
 parser = argparse.ArgumentParser()
 # Image indices to use for training and validation
-parser.add_argument('--imagesToUse', nargs='+', type=int, default=list(range(0,50,1)))
+parser.add_argument('--imagesToUse', nargs='+', type=int, default=list(range(0,15,1)))
 # GPUs to use
 parser.add_argument('--GPUs', nargs='+', type=int, default=None)
 # Path to dataset
@@ -31,9 +34,9 @@ parser.add_argument('--datasetPath', nargs='?', default="BrainLFMConfocalDataset
 # Path to directory where models and tensorboard logs are stored
 parser.add_argument('--outputPath', nargs='?', default=".")
 # Path to model to use for testing
-parser.add_argument('--checkpointPath', nargs='?', default="runs/2020_03_26__14:31:55_TrueB_0.1bias_5I_128BS_FalseSk_9FOV_3nT_0.03ths_f047520_commit__/")
+parser.add_argument('--checkpointPath', nargs='?', default="runs/2020_03_27__11:25:28_TrueB_0.1bias_5I_128BS_FalseSk_9FOV_3nT_0.03ths_200305b_commit__")
 # File to use
-parser.add_argument('--checkpointFileName', nargs='?', default="model_44")
+parser.add_argument('--checkpointFileName', nargs='?', default="model_2")
 # Write volumes to H5 file
 parser.add_argument('--writeVolsToH5', type=str2bool, default=False)
 # Write output to tensorboard
