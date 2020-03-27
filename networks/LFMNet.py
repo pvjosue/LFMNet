@@ -30,5 +30,4 @@ class LFMNet(nn.Module):
         x = self.Unet(newLensletImage)
         # Channels to 3D dimension 
         x3D = x.permute((0,2,3,1)).unsqueeze(1)
-        
         return x3D
