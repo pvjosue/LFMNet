@@ -152,7 +152,7 @@ ssim.eval()
 # Init bias and weights if needed
 if args.useBias:
     def bias_init(m):
-        if isinstance(m, nn.Conv2d) or isinstance(m, ConvNd) or isinstance(m, nn.Conv3d):
+        if isinstance(m, nn.Conv2d) or isinstance(m, nn.Conv3d):
             if m.bias is not None:
                 nn.init.constant_(m.bias.data, args.biasVal)
             nn.init.kaiming_normal_(m.weight)
@@ -175,10 +175,10 @@ if torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = '1234'+str(device_ids[0])
-    torch.distributed.init_process_group(backend="nccl", rank=0, world_size=1) #initialize torch.distributed 
+    torch.distributed.init_process_group(backend="nccl", rank=0, world_size=1)
 
 # Move network to distributed data parallel
-net = nn.parallel.DistributedDataParallel(net, device_ids=args.GPUs, output_device=args.GPUs[0],find_unused_parameters=True).to(device)
+net = nn.parallel.DistributedDataParallel(net, device_ids=args.GPUs, output_device=args.GPUs[0]).to(device)
 
 
 # timers
