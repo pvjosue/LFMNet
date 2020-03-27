@@ -69,10 +69,17 @@ class Dataset(object):
 
         # Compute padding
         fov_half = self.fov//2
-        neighShapeHalf = self.neighShape//2
-        startOffset = fov_half + neighShapeHalf
-        paddedLFSize = self.LFShape[:2] + tuple([self.LFShape[2]+2*startOffset,self.LFShape[3]+2*startOffset])
-        paddedVolSize = tuple([self.volShape[0]+2*neighShapeHalf*self.LFShape[0],self.volShape[1]+2*neighShapeHalf*self.LFShape[1],self.volShape[2]])
+        if self.getFullImgs:
+            neighShapeHalf = self.neighShape//2
+            startOffset = fov_half
+            paddedLFSize = self.LFShape[:2] + tuple([self.LFShape[2]+2*startOffset,self.LFShape[3]+2*startOffset])
+            paddedVolSize = self.volShape[0:3]
+        else:
+            neighShapeHalf = self.neighShape//2
+            startOffset = fov_half + neighShapeHalf
+            paddedLFSize = self.LFShape[:2] + tuple([self.LFShape[2]+2*startOffset,self.LFShape[3]+2*startOffset])
+            paddedVolSize = tuple([self.volShape[0]+2*neighShapeHalf*self.LFShape[0],self.volShape[1]+2*neighShapeHalf*self.LFShape[1],self.volShape[2]])
+        
         self.LFFull = torch.zeros(paddedLFSize+tuple([self.nImagesToUse]),dtype=torch.uint8)
         self.VolFull = torch.zeros(paddedVolSize+tuple([self.nImagesToUse]),dtype=torch.uint8)
 
@@ -89,8 +96,9 @@ class Dataset(object):
             currVol = currVol[:,vol_ix_x,:]
             # Pad with zeros borders
             currLF = F.pad(currLF, (startOffset, startOffset, startOffset, startOffset, 0, 0, 0, 0))
-            currVol = F.pad(currVol, (0,0,neighShapeHalf*self.LFShape[1],neighShapeHalf*self.LFShape[1],\
-                neighShapeHalf*self.LFShape[0],neighShapeHalf*self.LFShape[0]))
+            if self.getFullImgs==False:
+                currVol = F.pad(currVol, (0,0,neighShapeHalf*self.LFShape[1],neighShapeHalf*self.LFShape[1],\
+                    neighShapeHalf*self.LFShape[0],neighShapeHalf*self.LFShape[0]))
             self.LFFull[:,:,:,:,nImg] = currLF
             self.VolFull[:,:,:,nImg] = currVol
                 
@@ -100,8 +108,8 @@ class Dataset(object):
         self.LFDims = [self.LFShape[0],self.LFShape[1],self.LFSideLenght,self.LFSideLenght]
 
         if self.getFullImgs:
-            self.VolDims = self.volShape[0:3]#+tuple([len(self.img_indices)])
-            self.LFDims = self.LFShape[0:4]#+tuple([len(self.img_indices)])
+            self.VolDims = self.volShape[0:3]
+            self.LFDims = self.LFShape[0:4]
             self.nPatches = len(self.img_indices)
         self.tables.close()
 

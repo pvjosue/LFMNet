@@ -55,7 +55,7 @@ parser.add_argument('--ths', type=float, default=0.03)
 # Path to dataset
 parser.add_argument('--datasetPath', nargs='?', default="BrainLFMConfocalDataset/Brain_40x_64Depths_362imgs.h5")
 # Path to directory where models and tensorboard logs are stored
-parser.add_argument('--outputPath', nargs='?', default=".")
+parser.add_argument('--outputPath', nargs='?', default="runs/")
 # Prefix for current output folder
 parser.add_argument('--outputPrefix', nargs='?', default="")
 # Path to model in case of continuing a training

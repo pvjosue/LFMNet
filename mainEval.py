@@ -23,7 +23,7 @@ from util.TorchNDFunctions.FunctionsNd import ConvNd
 # Arguments
 parser = argparse.ArgumentParser()
 # Image indices to use for training and validation
-parser.add_argument('--imagesToUse', nargs='+', type=int, default=list(range(100,102,1)))
+parser.add_argument('--imagesToUse', nargs='+', type=int, default=list(range(0,50,1)))
 # GPUs to use
 parser.add_argument('--GPUs', nargs='+', type=int, default=None)
 # Path to dataset
@@ -43,9 +43,7 @@ argsTest = parser.parse_args()
 nImgs = len(argsTest.imagesToUse)
 
 # Setup multithreading
-num_workers = getThreads()
-if num_workers!=0:
-    torch.set_num_threads(num_workers)
+num_workers = 0
 
 if not torch.cuda.is_available():
         print("GPU initialization error")
@@ -76,7 +74,7 @@ if argsTest.writeToTB:
 
 # Load dataset
 all_data = Dataset(argsTest.datasetPath, argsModel.randomSeed, \
-    fov=argsModel.fovInput, neighShape=argsModel.neighShape, img_indices=argsModel.imagesToUse, get_full_imgs=True, center_region=None)
+    fov=argsModel.fovInput, neighShape=argsModel.neighShape, img_indices=argsTest.imagesToUse, get_full_imgs=True, center_region=None)
 # Create data loader
 test_dataset = data.DataLoader(all_data, batch_size=1,
                                shuffle=False, num_workers=num_workers, pin_memory=True)
@@ -106,7 +104,7 @@ if torch.cuda.device_count() > 1:
     torch.distributed.init_process_group(backend="nccl", rank=0, world_size=1) #initialize torch.distributed 
 
 # Move network to distributed data parallel
-net = nn.parallel.DistributedDataParallel(net, device_ids=argsTest.GPUs, output_device=argsTest.GPUs[0],find_unused_parameters=True).to(device)
+net = nn.parallel.DistributedDataParallel(net, device_ids=argsTest.GPUs, output_device=argsTest.GPUs[0]).to(device)
 # Load network from checkpoint
 net.load_state_dict(checkpoint['model_state_dict'])
 
@@ -119,65 +117,65 @@ end = torch.cuda.Event(enable_timing=True)
 
 print('Testing')
 net.eval()
-torch.set_grad_enabled(False) 
 avg_psnr = 0
 avg_ssim = 0
 avg_loss = 0
 avg_time = 0
 
-# Evaluate images
-for nBatch,(inputs,labels) in enumerate(test_dataset):
-    inputGPU = inputs.float().to(device) / maxInputTest
-    outputsGT = labels.float().to(device) / maxVolumeTrain
-    # Threshold GT to get rid of autofluorescence
-    outputsGT = imadjust(outputsGT,argsModel.ths,outputsGT.max(), outputsGT.min(), outputsGT.max())
+with torch.no_grad():
+    # Evaluate images
+    for nBatch,(inputs,labels) in enumerate(test_dataset):
+        inputGPU = inputs.float().to(device) / maxInputTest
+        outputsGT = labels.float().to(device) / maxVolumeTrain
+        # Threshold GT to get rid of autofluorescence
+        outputsGT = imadjust(outputsGT,argsModel.ths,outputsGT.max(), outputsGT.min(), outputsGT.max())
 
 
-    start.record()
-    outputsVol = net(inputGPU)
-    end.record()
-    torch.cuda.synchronize()
-    curr_time = start.elapsed_time(end)
+        start.record()
+        outputsVol = net(inputGPU)
+        end.record()
+        torch.cuda.synchronize()
+        curr_time = start.elapsed_time(end)
 
-    curr_loss = lossFunction(outputsGT,outputsVol).item()
-    avg_loss += curr_loss  / len(test_dataset)
-    # Compute PSNR
-    lossMSE = nn.functional.mse_loss(outputsVol.detach(), outputsGT.to(device).detach())
-    curr_psnr = 10 * math.log10(1 / lossMSE.item())
-    avg_psnr += curr_psnr / len(test_dataset)
-    curr_ssim = ssim(outputsVol[:,0,:,:,:].permute(0,3,1,2).contiguous().detach(), outputsGT[:,0,:,:,:].permute(0,3,1,2).contiguous().to(device).detach()).sum().item()
-    avg_ssim += curr_ssim / len(test_dataset)
+        curr_loss = lossFunction(outputsGT,outputsVol).item()
+        avg_loss += curr_loss  / len(test_dataset)
+        # Compute PSNR
+        lossMSE = nn.functional.mse_loss(outputsVol.detach(), outputsGT.to(device).detach())
+        curr_psnr = 10 * math.log10(1 / lossMSE.item())
+        avg_psnr += curr_psnr / len(test_dataset)
+        curr_ssim = ssim(outputsVol[:,0,:,:,:].permute(0,3,1,2).contiguous().detach(), outputsGT[:,0,:,:,:].permute(0,3,1,2).contiguous().to(device).detach()).sum().item()
+        avg_ssim += curr_ssim / len(test_dataset)
 
-    avg_time += curr_time / len(test_dataset)
+        avg_time += curr_time / len(test_dataset)
 
-    if argsTest.writeVolsToH5:
-        h5file = h5py.File(save_folder+"/ReconVol_"+argsTest.checkpointFileName+'_'+str(nBatch+min(argsTest.imagesToUse))+".h5", 'w')
-        h5file.create_dataset("LF4D", data=inputGPU.detach().cpu().squeeze().numpy())
-        h5file.create_dataset("LFimg", data=LF2Spatial(inputGPU, inputGPU.shape[2:]).squeeze().cpu().detach().numpy())
+        if argsTest.writeVolsToH5:
+            h5file = h5py.File(save_folder+"/ReconVol_"+argsTest.checkpointFileName+'_'+str(nBatch+min(argsTest.imagesToUse))+".h5", 'w')
+            h5file.create_dataset("LF4D", data=inputGPU.detach().cpu().squeeze().numpy())
+            h5file.create_dataset("LFimg", data=LF2Spatial(inputGPU, inputGPU.shape[2:]).squeeze().cpu().detach().numpy())
 
-        h5file.create_dataset("GT", data=outputsGT.detach().cpu().squeeze().numpy())
-        h5file.create_dataset("reconFull", data=outputsVol.detach().cpu().squeeze().numpy())
-        h5file.close()        
+            h5file.create_dataset("GT", data=outputsGT.detach().cpu().squeeze().numpy())
+            h5file.create_dataset("reconFull", data=outputsVol.detach().cpu().squeeze().numpy())
+            h5file.close()        
 
 
 
-    if argsTest.writeToTB:
-        curr_it = nBatch
-        lastBatchSize = 1
-        gridOut2 = torch.cat((outputsGT[0:lastBatchSize, :, :, :, :].sum(2).cpu().data.detach(), outputsVol[0:lastBatchSize, :, :, :, :].sum(2).cpu().data.detach()), dim=0)
-        gridOut2 = tv.utils.make_grid(gridOut2, normalize=True, scale_each=False)
-        LFImage = LF2Spatial(inputGPU, inputGPU.shape[2:])
+        if argsTest.writeToTB:
+            curr_it = nBatch
+            lastBatchSize = 1
+            gridOut2 = torch.cat((outputsGT[0:lastBatchSize, :, :, :, :].sum(2).cpu().data.detach(), outputsVol[0:lastBatchSize, :, :, :, :].sum(2).cpu().data.detach()), dim=0)
+            gridOut2 = tv.utils.make_grid(gridOut2, normalize=True, scale_each=False)
+            LFImage = LF2Spatial(inputGPU, inputGPU.shape[2:])
 
-        writer.add_image('images_val_YZ_projection', gridOut2, curr_it)
-        writer.add_image('z_proj_GT',outputsGT[0,:,:,:,:].sum(3).detach().cpu(),curr_it)
-        writer.add_image('z_proj_prediction',outputsVol[0,:,:,:,:].sum(3).detach().cpu(),curr_it)
-        writer.add_image('LFImage_in', LFImage[0,:,:,:], curr_it)
-        writer.add_scalar('Loss/test', curr_loss, curr_it)
-        writer.add_scalar('Loss/psnr', curr_psnr, curr_it)
-        writer.add_scalar('Loss/ssim', curr_ssim, curr_it)   
-        writer.add_scalar('times/val', curr_time, curr_it)  
-    
-    print('Img: ' + str(nBatch) + '/' + str(len(test_dataset)) + " L1: " + str(curr_loss) + " psnr: " + str(curr_psnr) + " SSIM: " + str(curr_ssim) + " recon_time: " + str(curr_time))
+            writer.add_image('images_val_YZ_projection', gridOut2, curr_it)
+            writer.add_image('z_proj_GT',outputsGT[0,:,:,:,:].sum(3).detach().cpu(),curr_it)
+            writer.add_image('z_proj_prediction',outputsVol[0,:,:,:,:].sum(3).detach().cpu(),curr_it)
+            writer.add_image('LFImage_in', LFImage[0,:,:,:], curr_it)
+            writer.add_scalar('Loss/test', curr_loss, curr_it)
+            writer.add_scalar('Loss/psnr', curr_psnr, curr_it)
+            writer.add_scalar('Loss/ssim', curr_ssim, curr_it)   
+            writer.add_scalar('times/val', curr_time, curr_it)  
+        
+        print('Img: ' + str(nBatch) + '/' + str(len(test_dataset)) + " L1: " + str(curr_loss) + " psnr: " + str(curr_psnr) + " SSIM: " + str(curr_ssim) + " recon_time: " + str(curr_time))
 
 print("avg_loss: " + str(avg_loss) + " avg_psnr: " + str(avg_psnr) + " avg_ssim: " + str(avg_ssim) + " avg_time: " + str(avg_time) + "ms")
 writer.close()
