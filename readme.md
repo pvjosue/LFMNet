@@ -1,4 +1,4 @@
-# LFMNet: A fully convolutional network for Light-field microscope (LFM) 3D reconstruction.
+# LFMNet: Learning to Reconstruct Confocal Microscope Stacks from Single Light Field Images
 
 This repository contains the code from our LFMNet [project](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project"). A neural network that reconstructs a 3D confocal volume given a 4D LF image, it has been tested with the Mice Brain LFM-confocal [dataset](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project").
 LFMNet is fully convolutional, it can be trained with LFs of any size (for example patches) and then tested on other sizes.
@@ -24,6 +24,19 @@ The dataset used for this network can be found [here](http://cvg.unibe.ch/media/
   
 ## Network structure
 The paradigm behind this network is that the input contains a group of microlenses and a neighborhood around them, and reconstructs the 3D volume behind the central microlenses.
-  LFMNet has as an initial layer a [conv4d](https://github.com/pvjosue/TorchNDFunctions "4D convolution"), that ensures a fully convolutional network, this first layers traverses every lenslet, and grabs a neighborhood (9 lenses in our case) around. Then the output is converted to a 2D image with the number of channels equal to the number of depths to reconstruct. Lastly, this tensor goes into a U-net, which finishes up the feature extraction and 3D reconstution.
+  LFMNet has as an initial layer a [conv4d](https://github.com/pvjosue/TorchNDFunctions "4D convolution"), that ensures a fully convolutional network, this first layers traverses every lenslet, and grabs a neighborhood (9 lenses in our case) around. Then the output is converted to a 2D image with the number of channels equal to the number of depths to reconstruct. Lastly, this tensor goes into a U-net<sup>1</sup>, which finishes up the feature extraction and 3D reconstution.
 
 <img src="images/LFMNet.png">
+
+## Citing this work
+<p>@article{pageLFMNet2020,<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author = {Page, Josue and Saltarin, Federico and Belyaev, Yury and Lyck, Ruth and Favaro, Paolo},<br>    
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title = {Learning to Reconstruct Confocal Microscope Stacks from Single Light Field Images},<br>
+	      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;booktitle = {arXiv},<br>    
+	      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;year = {2020},<br>    
+	      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eprint={2003.11004}}</p> 
+
+
+## Sources
+
+1. [Ronneberger, Olaf and Fischer, Philipp and Brox, Thomas. "U-Net: Convolutional Networks for Biomedical Image Segmentation" *MICCAI 2015*](https://arxiv.org/abs/1505.04597)
