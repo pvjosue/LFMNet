@@ -1,0 +1,6 @@
+h5py==2.9.0
+matplotlib==3.1.1
+tables==3.6.1
+tb-nightly==2.2.0a20200212
+torch==1.4.0
+torchvision==0.2.1
