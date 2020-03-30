@@ -26,7 +26,7 @@ The dataset used for this network can be found [here](http://cvg.unibe.ch/media/
 The paradigm behind this network is that the input contains a group of microlenses and a neighborhood around them, and reconstructs the 3D volume behind the central microlenses.
   LFMNet has as an initial layer a [conv4d](https://github.com/pvjosue/TorchNDFunctions "4D convolution"), that ensures a fully convolutional network, this first layers traverses every lenslet, and grabs a neighborhood (9 lenses in our case) around. Then the output is converted to a 2D image with the number of channels equal to the number of depths to reconstruct. Lastly, this tensor goes into a U-net<sup>1</sup>, which finishes up the feature extraction and 3D reconstution.
 
-<img src="images/LFMNet.png">
+<img src="images/LFMNet.jpg">
 
 ## Citing this work
 <p>@article{pageLFMNet2020,<br>
