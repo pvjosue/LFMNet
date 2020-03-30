@@ -4,14 +4,14 @@ This repository contains the code from our LFMNet [project](http://cvg.unibe.ch/
 LFMNet is fully convolutional, it can be trained with LFs of any size (for example patches) and then tested on other sizes.
 In our case it takes 20ms to reconstruct a volume with 1287x1287x64 voxels.
 
-<img src="images/system.png">
+<img src="images/system.jpg">
 
 
 ## Requirements
 The repo is based on Python 3.7.4 and Pytorch 1.4, see requirements.txt for more details.
 The dataset used for this network can be found [here](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project"), but it works with any LF image that has a corresponding 3D volume.
 
-<img src="images/Images.png">
+<img src="images/Images.jpg">
 
 ## Usage
   ### Input
