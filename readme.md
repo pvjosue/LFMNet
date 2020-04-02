@@ -49,7 +49,8 @@ The paradigm behind this network is that the input contains a group of microlens
 |outputPath|"runs/"|Path to directory where models and tensorboard logs are stored|
 |outputPrefix|""|Prefix for current output folder|
 |checkpointPath| "" | Path to model in case of continuing a training |
-
+#### Full Command
+	python3 mainTrain.py --epochs 1000 --valEvery 0.25 --imagesToUse 0 1 2 3 4 5 --GPUs 0 --batchSize 64 --validationSplit 0.1 --biasVal 0.1 --learningRate 0.005 --useBias True --useSkipCon False --fovInput 9 --neighShape 3 --useShallowUnet True --ths 0.03 --datasetPath "BrainLFMConfocalDataset/Brain_40x_64Depths_362imgs.h5" --outputPath, nargs='? "runs/" --outputPrefix "" --checkpointPath ""
 ### Test
 And mainEval.py the testing file with arguments:
 |Parameter|Default|Description|
@@ -62,6 +63,10 @@ And mainEval.py the testing file with arguments:
 |checkpointFileName|Your model's file|File to use|
 |writeVolsToH5|False|Write volumes to H5 file?|
 |writeToTB|True|Write output to tensorboard?|
+
+#### Full Command
+	python3 mainEval.py --epochs 1000 --valEvery 0.25 --imagesToUse 6 --GPUs 0 --batchSize 64 --validationSplit 0.1 --biasVal 0.1 --learningRate 0.005 --useBias True --useSkipCon False --fovInput 9 --neighShape 3 --useShallowUnet True --ths 0.03 --datasetPath "Brain_40x_64Depths_362imgs.h5" --outputPath "runs/" --outputPrefix "" --checkpointPath, "" 
+
 
 ## Citing this work
 <p>@article{pageLFMNet2020,<br>
