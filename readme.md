@@ -1,5 +1,23 @@
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![Apache License][license-shield]][license-url]
+[![Google Scholar][gs-shield]][gs-url]
+
 # LFMNet: Learning to Reconstruct Confocal Microscope Stacks from Single Light Field Images
 
+* [About the Project](#about)
+* [Requirements](#requirements)
+* [Network structure](#network-structure)
+* [Usage](#usage)
+  * [Train](#train)
+  * [Test](#train)
+* [Acknowledgements](#acknowledgements)
+* [Sources](#sources)
+* [Citing this work](#citing-this-work)
+* [Contact](#contact)
+
+## About
 This repository contains the code from our Light Field Microscopy [project](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project"). LFMNet is a neural network that reconstructs a 3D confocal volume given a 4D LF image, it has been tested with the Mice Brain LFM-confocal **public** [dataset](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project").
 LFMNet is fully convolutional, it can be trained with LFs of any size (for example patches) and then tested on other sizes.
 In our case it takes 20ms to reconstruct a volume with 1287x1287x64 voxels.
@@ -27,7 +45,10 @@ The paradigm behind this network is that the input contains a group of microlens
   A tensor with shape **nD,Ax*Sx,Ay*Sy**, where nD are the number of depths to reconstruct. In our case the output tensor is **64,1287,1287**.
     
 ### Train 
-  The training main file is mainTrain.py with arguments:
+The training main file is mainTrain.py:
+
+	python3 mainTrain.py --epochs 1000 --valEvery 0.25 --imagesToUse 0 1 2 3 4 5 --GPUs 0 --batchSize 64 --validationSplit 0.1 --biasVal 0.1 --learningRate 0.005 --useBias True --useSkipCon False --fovInput 9 --neighShape 3 --useShallowUnet True --ths 0.03 --datasetPath "BrainLFMConfocalDataset/Brain_40x_64Depths_362imgs.h5" --outputPath, nargs='? "runs/" --outputPrefix "" --checkpointPath ""
+	
 |Parameter|Default|Description|
 |---|---|---|
 |epochs|1000|Number of epochs|
@@ -49,10 +70,12 @@ The paradigm behind this network is that the input contains a group of microlens
 |outputPath|"runs/"|Path to directory where models and tensorboard logs are stored|
 |outputPrefix|""|Prefix for current output folder|
 |checkpointPath| "" | Path to model in case of continuing a training |
-#### Full Command
-	python3 mainTrain.py --epochs 1000 --valEvery 0.25 --imagesToUse 0 1 2 3 4 5 --GPUs 0 --batchSize 64 --validationSplit 0.1 --biasVal 0.1 --learningRate 0.005 --useBias True --useSkipCon False --fovInput 9 --neighShape 3 --useShallowUnet True --ths 0.03 --datasetPath "BrainLFMConfocalDataset/Brain_40x_64Depths_362imgs.h5" --outputPath, nargs='? "runs/" --outputPrefix "" --checkpointPath ""
+
 ### Test
-And mainEval.py the testing file with arguments:
+And mainEval.py the testing file:
+
+	python3 mainEval.py --epochs 1000 --valEvery 0.25 --imagesToUse 6 --GPUs 0 --batchSize 64 --validationSplit 0.1 --biasVal 0.1 --learningRate 0.005 --useBias True --useSkipCon False --fovInput 9 --neighShape 3 --useShallowUnet True --ths 0.03 --datasetPath "Brain_40x_64Depths_362imgs.h5" --outputPath "runs/" --outputPrefix "" --checkpointPath, "" 
+
 |Parameter|Default|Description|
 |---|---|---|
 |imagesToUse|list(range(301,315,1))|Image indices to use for training and validation|
@@ -64,8 +87,19 @@ And mainEval.py the testing file with arguments:
 |writeVolsToH5|False|Write volumes to H5 file?|
 |writeToTB|True|Write output to tensorboard?|
 
-#### Full Command
-	python3 mainEval.py --epochs 1000 --valEvery 0.25 --imagesToUse 6 --GPUs 0 --batchSize 64 --validationSplit 0.1 --biasVal 0.1 --learningRate 0.005 --useBias True --useSkipCon False --fovInput 9 --neighShape 3 --useShallowUnet True --ths 0.03 --datasetPath "Brain_40x_64Depths_362imgs.h5" --outputPath "runs/" --outputPrefix "" --checkpointPath, "" 
+## Acknowledgements
+* [Computer Vision Group, University of Bern](http://www.cvg.unibe.ch/ "")
+* [Theodor Kocher Institute, University of Bern](https://www.tki.unibe.ch/ "")
+* [Microscopy Imaging Center, University of Bern](https://www.mic.unibe.ch/ "")
+* [Computational Imaging and Inverse Problems, University of Munich](https://ciip.in.tum.de/ "")
+
+## Sources
+
+1. [Ronneberger, Olaf and Fischer, Philipp and Brox, Thomas. "U-Net: Convolutional Networks for Biomedical Image Segmentation" *MICCAI 2015*](https://arxiv.org/abs/1505.04597)
+
+## Contact
+Josue Page - josue.page@tum.de
+Project Link: [https://github.com/pvjosue/LFMNet](https://github.com/pvjosue/LFMNet)
 
 
 ## Citing this work
@@ -77,6 +111,15 @@ And mainEval.py the testing file with arguments:
 	      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eprint={2003.11004}}</p> 
 
 
-## Sources
 
-1. [Ronneberger, Olaf and Fischer, Philipp and Brox, Thomas. "U-Net: Convolutional Networks for Biomedical Image Segmentation" *MICCAI 2015*](https://arxiv.org/abs/1505.04597)
+[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=flat-square
+[forks-url]: https://github.com/pvjosue/LFMNet/network/members
+[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=flat-square
+[stars-url]: https://github.com/pvjosue/LFMNet/stargazers
+[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=flat-square
+[issues-url]: https://github.com/pvjosue/LFMNet/issues
+[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=flat-square
+[license-url]: https://github.com/pvjosue/LFMNet/blob/master/LICENSE
+[gs-shield]: https://img.shields.io/badge/-GoogleScholar-black.svg?style=flat-square&logo=google-scholar&colorB=555
+[gs-url]: https://scholar.google.com/citations?user=5WfCRjQAAAAJ&hl=en
+[product-screenshot]: images/screenshot.png
