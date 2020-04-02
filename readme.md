@@ -3,6 +3,7 @@
 [![Issues][issues-shield]][issues-url]
 [![Apache License][license-shield]][license-url]
 [![Google Scholar][gs-shield]][gs-url]
+[![PDF][arxiv-shield]][arxiv-url]
 
 # LFMNet: Learning to Reconstruct Confocal Microscope Stacks from Single Light Field Images
 
@@ -123,3 +124,8 @@ Project Link: [https://github.com/pvjosue/LFMNet](https://github.com/pvjosue/LFM
 [gs-shield]: https://img.shields.io/badge/-GoogleScholar-black.svg?style=flat-square&logo=google-scholar&colorB=555
 [gs-url]: https://scholar.google.com/citations?user=5WfCRjQAAAAJ&hl=en
 [product-screenshot]: images/screenshot.png
+[arxiv-shield]: https://img.shields.io/badge/-PDF-black.svg?style=flat-square&logo=arXiv&colorB=555
+[arxiv-url]: https://arxiv.org/abs/2003.11004
+
+
+
