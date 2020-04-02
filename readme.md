@@ -1,6 +1,6 @@
 # LFMNet: Learning to Reconstruct Confocal Microscope Stacks from Single Light Field Images
 
-This repository contains the code from our LFMNet [project](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project"). A neural network that reconstructs a 3D confocal volume given a 4D LF image, it has been tested with the Mice Brain LFM-confocal [dataset](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project").
+This repository contains the code from our LFMNet [project](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project"). A neural network that reconstructs a 3D confocal volume given a 4D LF image, it has been tested with the Mice Brain LFM-confocal **public** [dataset](http://cvg.unibe.ch/media/project/page/LFMNet/index.html "LFMNet CVG project").
 LFMNet is fully convolutional, it can be trained with LFs of any size (for example patches) and then tested on other sizes.
 In our case it takes 20ms to reconstruct a volume with 1287x1287x64 voxels.
 
