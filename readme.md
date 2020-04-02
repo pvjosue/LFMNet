@@ -1,6 +1,6 @@
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
+<!--- [![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url] 
+[![Issues][issues-shield]][issues-url]-->
 [![Apache License][license-shield]][license-url]
 [![Google Scholar][gs-shield]][gs-url]
 [![PDF][arxiv-shield]][arxiv-url]
