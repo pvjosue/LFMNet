@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from util.LFUtil import *
-from util.pytorch_convNd import convNd
+from util.pytorch_convNd.convNd import convNd
 
 class LFMNet(nn.Module):
     def __init__(self, nDepths, useBias, useSkipCon, LFshape, LFfov=9, use_small_unet=False):
