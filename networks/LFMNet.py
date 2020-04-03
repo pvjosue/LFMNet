@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from util.LFUtil import *
-from util.TorchNDFunctions.FunctionsNd import ConvNd
+from util.pytorch_convNd import convNd
 
 class LFMNet(nn.Module):
     def __init__(self, nDepths, useBias, useSkipCon, LFshape, LFfov=9, use_small_unet=False):
@@ -15,7 +15,7 @@ class LFMNet(nn.Module):
             from networks.UnetFull import UNetLF
 
         self.lensletConvolution = nn.Sequential(
-            ConvNd(1,self.nDepths, num_dims=4, kernel_size=(3,3,LFfov,LFfov),stride=1, padding=(1,1,0,0), use_bias=useBias),
+            convNd(1,self.nDepths, num_dims=4, kernel_size=(3,3,LFfov,LFfov),stride=1, padding=(1,1,0,0), use_bias=useBias),
             nn.LeakyReLU())
         
         self.Unet = UNetLF(self.nDepths, self.nDepths, use_skip=useSkipCon)   

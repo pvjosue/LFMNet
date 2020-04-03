@@ -1,4 +1,4 @@
-[submodule "util/pytorch-convNd"]
-	path = util/pytorch-convNd
-	url = https://github.com/pvjosue/pytorch-convNd
+[submodule "util/pytorch_convNd"]
+	path = util/pytorch_convNd
+	url = https://github.com/pvjosue/pytorch_convNd
 	branch = master

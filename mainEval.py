@@ -18,7 +18,6 @@ from util.LFUtil import *
 import numpy as np
 
 from networks.LFMNet import LFMNet
-from util.TorchNDFunctions.FunctionsNd import ConvNd
 
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
