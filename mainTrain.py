@@ -176,8 +176,8 @@ if torch.cuda.device_count() > 1:
     os.environ['MASTER_PORT'] = '1234'+str(device_ids[0])
     torch.distributed.init_process_group(backend="nccl", rank=0, world_size=1)
 
-# Move network to distributed data parallel
-net = nn.parallel.DistributedDataParallel(net, device_ids=args.GPUs, output_device=args.GPUs[0]).to(device)
+    # Move network to distributed data parallel
+    net = nn.parallel.DistributedDataParallel(net, device_ids=args.GPUs, output_device=args.GPUs[0]).to(device)
 
 
 # timers
