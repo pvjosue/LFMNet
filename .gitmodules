@@ -1,3 +1,0 @@
-[submodule "util/TorchNDFunctions"]
-	path = util/TorchNDFunctions
-	url = git@github.com:pvjosue/TorchNDFunctions.git
