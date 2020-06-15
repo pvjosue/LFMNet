@@ -27,7 +27,7 @@ parser.add_argument('--epochs', type=int, default=1000)
 # Validate every n percentage of the data
 parser.add_argument('--valEvery', type=float, default=0.25)
 # Image indices to use for training and validation
-parser.add_argument('--imagesToUse', nargs='+', type=int, default=list(range(0,5,1)))
+parser.add_argument('--imagesToUse', nargs='+', type=int, default=[i for i in range(0,150,1) if i%10!=0])
 # List of GPUs to use: 0 1 2 for example
 parser.add_argument('--GPUs', nargs='+', type=int, default=None)
 # Batch size
@@ -52,14 +52,17 @@ parser.add_argument('--neighShape', type=int, default=3)
 parser.add_argument('--useShallowUnet', type=str2bool, default=True)
 # Lower threshold of GT stacks, to get rid of autofluorescence
 parser.add_argument('--ths', type=float, default=0.03)
+# Lower threshold images
+parser.add_argument('--thsIMG', type=float, default=0.1)
 # Path to dataset
 parser.add_argument('--datasetPath', nargs='?', default="BrainLFMConfocalDataset/Brain_40x_64Depths_362imgs.h5")
 # Path to directory where models and tensorboard logs are stored
 parser.add_argument('--outputPath', nargs='?', default="runs/")
 # Prefix for current output folder
-parser.add_argument('--outputPrefix', nargs='?', default="")
+parser.add_argument('--outputPrefix', nargs='?', default="ths_test_0.1")
 # Path to model in case of continuing a training
 parser.add_argument('--checkpointPath', nargs='?', default=None)
+parser.add_argument('--noiseAmplitude', type=float, default=0.01)
 
 args = parser.parse_args()
 nImgs = len(args.imagesToUse)
@@ -214,6 +217,11 @@ for epoch in range(epochStart, args.epochs):
         # Threshold GT to get rid of autofluorescence
         if args.ths!=0:
             outputsGT = imadjust(outputsGT, args.ths,outputsGT.max(), outputsGT.min(), outputsGT.max())
+            inputGPU = imadjust(inputGPU, args.thsIMG,inputGPU.max(), inputGPU.min(), inputGPU.max())
+        # Apply noise if defined
+        if args.noiseAmplitude!=0:
+            inputGPU += torch.FloatTensor(inputGPU.shape).uniform_(0, args.noiseAmplitude).to(device)
+            outputsGT += torch.FloatTensor(outputsGT.shape).uniform_(0, args.noiseAmplitude).to(device)
         # Predict
         outputsVol = net(inputGPU)
         loss = lossFunction(outputsGT,outputsVol)
@@ -275,6 +283,7 @@ for epoch in range(epochStart, args.epochs):
                     outputsGT = labels.float().to(device) / maxVolumeTrain
                     # Threshold GT to get rid of autofluorescence
                     outputsGT = imadjust(outputsGT,args.ths,outputsGT.max(), outputsGT.min(), outputsGT.max())
+                    inputGPU = imadjust(inputGPU, args.thsIMG,inputGPU.max(), inputGPU.min(), inputGPU.max())
                     outputsVol = net(inputGPU)
                     loss = lossFunction(outputsGT,outputsVol)
                     test_loss += loss.item() / nDepths
