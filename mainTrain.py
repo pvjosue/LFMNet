@@ -36,7 +36,7 @@ parser.add_argument('--validationSplit', type=float, default=0.1)
 # Bias initialization value
 parser.add_argument('--biasVal', type=float, default=0.1)
 # Learning rate
-parser.add_argument('--learningRate', type=float, default=0.005)
+parser.add_argument('--learningRate', type=float, default=0.001)
 # Use bias flag
 parser.add_argument('--useBias', type=str2bool, default=True)
 # Use skip connections flag

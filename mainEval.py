@@ -27,15 +27,15 @@ parser = argparse.ArgumentParser()
 # Image indices to use for training and validation
 parser.add_argument('--imagesToUse', nargs='+', type=int, default=list(range(0,15,1)))
 # GPUs to use
-parser.add_argument('--GPUs', nargs='+', type=int, default=None)
+parser.add_argument('--GPUs', nargs='+', type=int, default=[0])
 # Path to dataset
 parser.add_argument('--datasetPath', nargs='?', default="BrainLFMConfocalDataset/Brain_40x_64Depths_362imgs.h5")
 # Path to directory where models and tensorboard logs are stored
-parser.add_argument('--outputPath', nargs='?', default=".")
+parser.add_argument('--outputPath', nargs='?', default="eval/runsMouse/")
 # Path to model to use for testing
-parser.add_argument('--checkpointPath', nargs='?', default="runs/2020_03_27__11:25:28_TrueB_0.1bias_5I_128BS_FalseSk_9FOV_3nT_0.03ths_200305b_commit__")
+parser.add_argument('--checkpointPath', nargs='?', default="runs/2020_10_11__14:23:21_TrueB_0.1bias_5I_128BS_FalseSk_9FOV_3nT_0.03ths_a8d9a2c_commit_")
 # File to use
-parser.add_argument('--checkpointFileName', nargs='?', default="model_2")
+parser.add_argument('--checkpointFileName', nargs='?', default="model_130")
 # Write volumes to H5 file
 parser.add_argument('--writeVolsToH5', type=str2bool, default=False)
 # Write output to tensorboard
@@ -67,7 +67,7 @@ if argsTest.checkpointPath is not None:
 device = torch.device("cuda:"+str(argsTest.GPUs[0]) if torch.cuda.is_available() else "cpu")
 
 # Create output folder
-save_folder = argsTest.checkpointPath[:-1] + "_eval_" + datetime.now().strftime('%Y_%m_%d__%H:%M:%S')
+save_folder = argsTest.outputPath + argsTest.checkpointPath[:-1].split('/')[1] + "_eval_" + datetime.now().strftime('%Y_%m_%d__%H:%M:%S')
 print(save_folder)
 
 # Create summary writer to log stuff
@@ -169,8 +169,10 @@ with torch.no_grad():
             LFImage = LF2Spatial(inputGPU, inputGPU.shape[2:])
 
             writer.add_image('images_val_YZ_projection', gridOut2, curr_it)
-            writer.add_image('z_proj_GT',outputsGT[0,:,:,:,:].sum(3).detach().cpu(),curr_it)
-            writer.add_image('z_proj_prediction',outputsVol[0,:,:,:,:].sum(3).detach().cpu(),curr_it)
+            z_proj = outputsGT[0,:,:,:,:].sum(3)
+            writer.add_image('z_proj_GT',(z_proj/z_proj.max()).detach().cpu(),curr_it)
+            z_proj = outputsVol[0,:,:,:,:].sum(3)
+            writer.add_image('z_proj_prediction',(z_proj/z_proj.max()).detach().cpu(),curr_it)
             writer.add_image('LFImage_in', LFImage[0,:,:,:], curr_it)
             writer.add_scalar('Loss/test', curr_loss, curr_it)
             writer.add_scalar('Loss/psnr', curr_psnr, curr_it)
