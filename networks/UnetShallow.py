@@ -13,10 +13,10 @@ class double_conv(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_ch, out_ch, 3, padding=1, padding_mode = 'reflect'),
             nn.BatchNorm2d(out_ch),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(inplace=False),
             nn.Conv2d(out_ch, out_ch, 3, padding=1),
             nn.BatchNorm2d(out_ch),
-            nn.ReLU(inplace=True)
+            nn.LeakyReLU(inplace=False)
         )
 
     def forward(self, x):
@@ -38,8 +38,9 @@ class down(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(down, self).__init__()
         self.mpconv = nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, 3, 2, padding=1, padding_mode = 'reflect'),
-            double_conv(out_ch, out_ch)
+            nn.Conv2d(in_ch, out_ch, 3, 1, padding=1, padding_mode = 'reflect'),
+            double_conv(out_ch, out_ch),
+            nn.MaxPool2d(2)
         )
 
     def forward(self, x):
