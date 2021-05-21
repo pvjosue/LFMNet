@@ -76,7 +76,7 @@ python3 mainTrain.py --epochs 1000 --valEvery 0.25 --imagesToUse 0 1 2 3 4 5 --G
 ### Test
 And mainEval.py the testing file:
 ```bash
-python3 mainEval.py --epochs 1000 --valEvery 0.25 --imagesToUse 6 --GPUs 0 --batchSize 64 --validationSplit 0.1 --biasVal 0.1 --learningRate 0.005 --useBias True --useSkipCon False --fovInput 9 --neighShape 3 --useShallowUnet True --ths 0.03 --datasetPath "Brain_40x_64Depths_362imgs.h5" --outputPath "runs/" --outputPrefix "" --checkpointPath, "" 
+python3 mainEval.py --GPUs 0 --datasetPath "Brain_40x_64Depths_362imgs.h5" --outputPath "runs/" --outputPrefix "" --checkpointPath, "my_path/" --checkpointFileName, "checkpoint_" --writeVolsToH5 0 --writeToTB 1
 ```
 |Parameter|Default|Description|
 |---|---|---|
