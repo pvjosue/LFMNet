@@ -106,13 +106,15 @@ Project Link: [https://github.com/pvjosue/LFMNet](https://github.com/pvjosue/LFM
 
 ## Citing this work
 ```bibtex
-@article{pageLFMNet2020,
-    author = {Page, Josue and Saltarin, Federico and Belyaev, Yury and Lyck, Ruth and Favaro, Paolo},   
-    title = {Learning to Reconstruct Confocal Microscope Stacks from Single Light Field Images},
-    booktitle = {arXiv},
-    year = {2020}, 
-    eprint = {2003.11004}
-}
+@article{9488315,
+  author={Page~Vizcaino, Josue and Saltarin, Federico and Belyaev, Yury and Lyck, Ruth and Lasser, Tobias and Favaro, Paolo},
+  journal={IEEE Transactions on Computational Imaging}, 
+  title={Learning to Reconstruct Confocal Microscopy Stacks from Single Light Field Images}, 
+  year={2021},
+  volume={},
+  number={},
+  pages={1-1},
+  doi={10.1109/TCI.2021.3097611}}
 ```
 
 
